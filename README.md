@@ -1,12 +1,16 @@
 # codechallengeilvm
-Code challenge for the "Bonnie Situation"
+Code challenge for the "Bonnie Situation".
+
+But first, what is a "Bonnie Situation"? Well, according to Urban Dictionary [definiton](https://www.urbandictionary.com/define.php?term=Bonnie%20Situation), 
+
+> A "Bonnie Situation is when you are already stuck in a particular problematic situation and there is a high risk of being discovered by third parties and it could lead you to embarassment, imprisonment, a smack-around-the-head, grounding, divorce, a severe belt-beating etc.". Nice touch!
 
 ### Project Initialization 
 1. Use the Truffle framework for Solidity development, make sure your project
 structure follows the truffle standard. Use Solidity version 0.8 or higher.
 a. You may also use Hardhat + Truffle + Web3
 
-> I'll opt in for the variant **Hardhat** + **Truffle** + **Web3.js**.
+(I'll opt in for the variant **Hardhat** + **Truffle** + **Web3.js**).
 
 Generating a package.json from my project
 
@@ -32,6 +36,18 @@ Enable the Truffle 5 pulgin in Hardhat by requiring it in the hardhatconfig.js
 
 `require("@nomiclabs/hardhat-truffle5");`
 
-## Run tets
+Adding OpenZeppelin contracts as dependencies
+
+`npm install @openzeppelin/contracts`
+
+## How to install
+
+
+## How to test
 
 `yarn test`
+
+## How to deploy
+
+
+## How to use
