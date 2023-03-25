@@ -4,6 +4,7 @@
   "description": "Code challenge for the \"Bonnie Situation\"",
   "main": "index.js",
   "scripts": {
+    "compile": "npx hardhat compile",
     "test": "npx hardhat test"
   },
   "repository": {

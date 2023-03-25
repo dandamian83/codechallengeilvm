@@ -2,11 +2,14 @@
 pragma solidity ^0.8.18;
 
 import "../node_modules/@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "../node_modules/@openzeppelin/contracts/access/Ownable.sol";
 
-contract BonnieSituation is ERC20 {
+contract BonnieSituation is ERC20, Ownable {
+
 
     // EIP712 domain separator
     bytes32 private DOMAIN_SEPARATOR;
+
 
     // EIP712 message structure
     struct TransferMessage {
@@ -27,7 +30,10 @@ contract BonnieSituation is ERC20 {
      // Token emergency transfer event
     event EmergencyTransfer(address indexed from, address indexed to, uint256 amount);
 
-    constructor() ERC20("Bonnie Situation Token", "BST") {
+    constructor(string memory _name, string memory _symbol, uint8 _decimals, uint256 _initialSupply) ERC20(_name, _symbol) {
+        
+        _mint(msg.sender, _initialSupply * 10 ** uint256(_decimals));
+
         DOMAIN_SEPARATOR = keccak256(abi.encode(
             keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),
             keccak256(bytes("Bonnie Situation")),
@@ -46,6 +52,8 @@ contract BonnieSituation is ERC20 {
     /// which will be used to transfer tokens to in case of emergency.
     function registerBackup(address _backupAddress) external {
         require(balanceOf(msg.sender) > 0, "You are not a token holder");
+        require(_backupAddress != address(0), "Invalid backup address.");
+        
         backupAddress[msg.sender] = _backupAddress;
     }
 
