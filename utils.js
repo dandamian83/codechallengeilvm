@@ -27,7 +27,7 @@ module.exports.generateEIP712SignatureForEmergencyTransfer = async function(bonn
         }
     }
 
-
+    console.log("1983 chain id", hre.network.config.chainId);
     const wallet = new ethers.Wallet(bonniesAccountPrvKey);
     const signature = await wallet._signTypedData(typedData.domain, typedData.types, typedData.message);
 

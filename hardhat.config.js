@@ -13,7 +13,8 @@ module.exports = {
 
     goerli: {
       url: `https://eth-goerli.g.alchemy.com/v2/${c.ALCHEMY_API_KEY}`,
-      accounts: [c.GOERLI_DEPLOYER_PRIVATE_KEY]
+      accounts: [c.GOERLI_DEPLOYER_PRIVATE_KEY],
+      chainId: 5
     }
   }
 };
