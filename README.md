@@ -5,6 +5,8 @@ But first, what is a "Bonnie Situation"? Well, according to Urban Dictionary [de
 
 > A "Bonnie Situation is when you are already stuck in a particular problematic situation and there is a high risk of being discovered by third parties and it could lead you to embarassment, imprisonment, a smack-around-the-head, grounding, divorce, a severe belt-beating etc.". Nice touch!
 
+The solution to our situation would be **Meta Transactions**, implemented with the help of **EIP712** signatures.
+
 ### Project Initialization 
 
 Prerequisites: `node.js` v. ^16.14.2 and `npm` v. ^9.6.2.
@@ -38,18 +40,55 @@ Adding OpenZeppelin contracts as dependencies
 `npm install @openzeppelin/contracts`
 
 
-
 ## How to install
 
+Start a local Hardhat node
+
+`yarn start:local`
+
+Compile the smart contract
+
+`yarn compile`
+
+Deploy the smart contract on the local Hardhat node
+
+`yarn deploy:local`
 
 ## How to test
+
+To run the unit tests
 
 `yarn test`
 
 ## How to deploy
-Deployed on Goerli at address 0x40fB42247A0E532eb20A50f9E26F14a58C804cc2.
+You can find the contract already on Goerli network at address [0x40fB42247A0E532eb20A50f9E26F14a58C804cc2](https://goerli.etherscan.io/address/0x40fB42247A0E532eb20A50f9E26F14a58C804cc2).
 
 ## How to use
+
+First, you would need at least three accounts: Deployer (Owner of the Smart Contract), Bonnie's Wallet and Bonnies's Backup Address. As well as api keys from Alchemy (but for now you can use mine) to interact with Goerli test network. All these should be configured in the `config.js` file as follows:
+    
+    ALCHEMY_API_KEY: <your-Alchemy-app-key>,
+    GOERLI_DEPLOYER_PRIVATE_KEY: <your-owner-account-private-key>,
+    GOERLI_EXISTENT_BONNIE_CONTRACT_ADDRESS: <the-address-of-the-deployed-smart-contract>, // filled after the deployment
+    BONNIES_PRIVATE_KEY: <Bonnies-account-private-key>,
+    BONNIES_ADDRESS: <Bonnies-account-address>,
+    BONNIES_BKP_ADDRESS: <Bonnies-backup-address>,
+
+Deploy the smart contract on Goerli network
+
+`yarn deploy:goerli`
+
+Send 10 BST tokens to Bonnie's wallet
+
+`yarn sendTokensToBonnie:goerli`
+
+Register a backup address for Bonnies (should have some ethers in her wallet)
+
+`registerBkpAddressForBonnie:goerli`
+
+Issue emergency transfer on behalf of Bonnie
+
+`yarn emergencyTransfer:goerli`
 
 ## Goerli demo
 

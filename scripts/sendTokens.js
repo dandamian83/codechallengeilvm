@@ -5,7 +5,7 @@ async function main() {
 
   const abi = require('../artifacts/contracts/BonnieSituation.sol/BonnieSituation.json').abi;
   // Replace with the address of the ERC20 contract on Goerli
-  const contractAddress = "0x40fB42247A0E532eb20A50f9E26F14a58C804cc2";
+  const contractAddress = c.GOERLI_EXISTENT_BONNIE_CONTRACT_ADDRESS;
 
   const provider = new ethers.providers.AlchemyProvider("goerli", c.ALCHEMY_API_KEY);
   const signer = new ethers.Wallet(c.GOERLI_DEPLOYER_PRIVATE_KEY, provider);
