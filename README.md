@@ -5,27 +5,11 @@ But first, what is a "Bonnie Situation"? Well, according to Urban Dictionary [de
 
 > A "Bonnie Situation is when you are already stuck in a particular problematic situation and there is a high risk of being discovered by third parties and it could lead you to embarassment, imprisonment, a smack-around-the-head, grounding, divorce, a severe belt-beating etc.". Nice touch!
 
-## Answer to question
-Yes, there is a solution: use a gasless transaction. Gasless transactions, or a meta-transaction is a type of transaction where a third-party relayer or sponsor pays the gas fee on behalf of the user, allowing them to perform transactions without needing to have any Ether in their account.
-
-Here are the general steps to issue a gasless transaction using meta-transactions:
-
-1. Create a contract that supports meta-transactions. This contract would include functions that allow users to sign a message that authorizes a relayer to submit a transaction on their behalf. The contract would then execute the transaction using its own gas, and deduct the gas fee from the user's balance.
-
-2. Sign the transaction message using an Ethereum wallet or other signing tool. This generates a signed message that includes the details of the transaction and the authorization for the relayer to submit it.
-
-3. Submit the signed message to a relayer or sponsor who will submit it to the Ethereum network on behalf of the user. The relayer will pay the gas fee for the transaction and deduct it from the user's balance in the meta-transaction contract.
-
-4. Once the transaction is confirmed, the relayer or sponsor would inform the user that the transaction was successful.
-
 ### Project Initialization 
-1. Use the Truffle framework for Solidity development, make sure your project
-structure follows the truffle standard. Use Solidity version 0.8 or higher.
-a. You may also use Hardhat + Truffle + Web3
 
-(I'll opt in for the variant **Hardhat** + **Truffle** + **Web3.js**).
+Prerequisites: `node.js` v. ^16.14.2 and `npm` v. ^9.6.2.
 
-Generating a package.json from my project
+Generating a package.json for my project
 
 `npm init --yes`
 
@@ -53,6 +37,8 @@ Adding OpenZeppelin contracts as dependencies
 
 `npm install @openzeppelin/contracts`
 
+
+
 ## How to install
 
 
@@ -65,3 +51,12 @@ Deployed on Goerli at address 0x40fB42247A0E532eb20A50f9E26F14a58C804cc2.
 
 ## How to use
 
+## Goerli demo
+
+1. Contract creation [tx](https://goerli.etherscan.io/tx/0x81d405a3ae83819adbb602d02f89be65c452d3e7611818b3304cb2746a086709)
+
+2. Bonnie receives 10 BST [tx](https://goerli.etherscan.io/tx/0x9b10699bbc67da8efa79f86805bb43948ac02fccedd186dfd8a9ba1cfbcb71e5)
+
+3. Bonnie registers a backup address [tx](https://goerli.etherscan.io/tx/0x31fc538affda83ab63918f7e00afe5a3962a6ac8ae9c3de1d5478aa7ad620bea)
+
+4. Some address (it happens to be the owner), performs the emergency transfer for Bonnie, transferring all her tokens to her backup address [tx](https://goerli.etherscan.io/tx/0x08407ae74272d03c8eaaedb503a03cd1b792e51be7be64a1704cbd04af2f779c)
