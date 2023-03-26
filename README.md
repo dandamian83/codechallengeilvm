@@ -41,6 +41,9 @@ Adding OpenZeppelin contracts as dependencies
 
 
 ## How to install
+Install all dependencies defined in package.json
+
+`npm install`
 
 Start a local Hardhat node
 

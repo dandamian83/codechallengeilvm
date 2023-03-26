@@ -37,11 +37,6 @@ contract BonnieSituation is ERC20, Ownable {
      // Token emergency transfer event
     event EmergencyTransferEvent(address indexed from, address indexed to, uint256 amount);
 
-    modifier notBlacklisted(address _address) {
-        require(!blacklisted[_address], "Address is blacklisted");
-        _;
-    }
-
     constructor(string memory _name, string memory _symbol, uint8 _decimals, uint256 _initialSupply) ERC20(_name, _symbol) {
         
         // Minting the initial supply of tokens
