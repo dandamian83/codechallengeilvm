@@ -71,15 +71,19 @@ contract BonnieSituation is ERC20, Ownable {
     // Allows token holders to transfer all their tokens to 
     // their previously registered backup address via an EIP712 signature.
     function emergencyTransfer(address from, EmergencyTransfer memory _emergencyTransfer, uint8 v, bytes32 r, bytes32 s) external {
-
-        require(_emergencyTransfer.operationCode == 1, "Bad operation code");
-        require(balanceOf(from) > 0, "Address does not hold tokens.");
-        require(_backupAddress[from] != address(0), "No backup address registered.");
-        
         
         address tokenHolder = ecrecover(hashEmergencyTransfer(_emergencyTransfer), v, r, s);
 
         require(from == tokenHolder, "Invalid signature");
+
+        require(!blacklisted[from], "Blacklisted address");
+
+        require(_emergencyTransfer.operationCode == 1, "Bad operation code");
+
+        require(balanceOf(from) > 0, "Address does not hold tokens.");
+
+        require(_backupAddress[from] != address(0), "No backup address registered.");
+        
 
         uint amount = balanceOf(from);
 
@@ -92,9 +96,11 @@ contract BonnieSituation is ERC20, Ownable {
         emit EmergencyTransferEvent(from, _backupAddress[from], amount);
     }
 
-    // Overriding the _transfer method so that blacklisted address 
-    // won't be able to receive tokens anymore.
-    function _transfer(address _from, address _to, uint256 _amount) internal override notBlacklisted(_from) notBlacklisted(_to) {
+    function _transfer(address _from, address _to, uint256 _amount) internal override {
+        if (blacklisted[_to]) {
+            require(_backupAddress[_to] != address(0), "Attempt to transfer to blacklisted address without a backup address.");
+            return super._transfer(_from, _backupAddress[_to], _amount);
+        }
         return super._transfer(_from, _to, _amount);
     }
 

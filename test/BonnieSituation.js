@@ -22,7 +22,6 @@ contract("theContract", (accounts) => {
         return { owner, bonniesAccount, bonniesAccountPrvKey, bonniesBackupAccount, relayersAccount, theContract };
     }
 
-
     async function emptyAccount(account, to) {
         let initialSenderBalance = await account.getBalance();
 
@@ -42,6 +41,45 @@ contract("theContract", (accounts) => {
             gasLimit,
             gasPrice,
         });
+    }
+
+    async function generateEIP712SignatureForEmergencyTransfer(bonniesAccountPrvKey, theContract) {
+        // Typed data for EIP712 signature generation according to https://eips.ethereum.org/EIPS/eip-712
+        const typedData = {
+            types: {
+                // No need to define it when used with ethers._signTypedData (its implicit)
+                // EIP712Domain: [
+                //     { name: "name", type: "string" },
+                //     { name: "version", type: "string" },
+                //     { name: "chainId", type: "uint256" },
+                //     { name: "verifyingContract", type: "address" },
+                // ],
+                EmergencyTransfer: [
+                    {name: "operationCode", type: "uint8"}
+                ]
+            },
+            primaryType: "EmergencyTransfer",
+            domain: {
+                name: "Bonnie Situation",
+                version: "1",
+                chainId: hre.network.config.chainId,
+                verifyingContract: theContract.address,
+            },
+            message: {
+                operationCode: 1
+            }
+        }
+
+
+        const wallet = new ethers.Wallet(bonniesAccountPrvKey);
+        const signature = await wallet._signTypedData(typedData.domain, typedData.types, typedData.message);
+
+        const signatureBytes = ethers.utils.arrayify(signature);
+        const r = ethers.utils.hexlify(signatureBytes.slice(0, 32));
+        const s = ethers.utils.hexlify(signatureBytes.slice(32, 64));
+        const v = ethers.utils.hexlify(signatureBytes.slice(64, 65));
+
+        return {v, r, s, message: typedData.message}
     }
 
     it("Contract should have a total of 1000 BST minted tokens", async function () {
@@ -109,48 +147,14 @@ contract("theContract", (accounts) => {
         // Bonnie gets hacked and now her account is always depleted
         await emptyAccount(bonniesAccount, owner);
         assert.equal(await bonniesAccount.getBalance(), 0n);
-
-        // Typed data for EIP712 signature generation according to https://eips.ethereum.org/EIPS/eip-712
-        const typedData = {
-            types: {
-                // No need to define it when used with ethers._signTypedData (its implicit)
-                // EIP712Domain: [
-                //     { name: "name", type: "string" },
-                //     { name: "version", type: "string" },
-                //     { name: "chainId", type: "uint256" },
-                //     { name: "verifyingContract", type: "address" },
-                // ],
-                EmergencyTransfer: [
-                    {name: "operationCode", type: "uint8"}
-                ]
-            },
-            primaryType: "EmergencyTransfer",
-            domain: {
-                name: "Bonnie Situation",
-                version: "1",
-                chainId: hre.network.config.chainId,
-                verifyingContract: theContract.address,
-            },
-            message: {
-                operationCode: 1
-            }
-        }
-
-
-        const wallet = new ethers.Wallet(bonniesAccountPrvKey);
-        const signature = await wallet._signTypedData(typedData.domain, typedData.types, typedData.message);
-
-        const signatureBytes = ethers.utils.arrayify(signature);
-        const r = ethers.utils.hexlify(signatureBytes.slice(0, 32));
-        const s = ethers.utils.hexlify(signatureBytes.slice(32, 64));
-        const v = ethers.utils.hexlify(signatureBytes.slice(64, 65));
-
+    
         let oldBonniesBackupAddressBalance = await theContract.balanceOf(bonniesBackupAccount.address);
         
-        
+        let {v, r, s, message} = await generateEIP712SignatureForEmergencyTransfer(bonniesAccountPrvKey, theContract);
+
         // Perform the emergency transfer using relayersAccount (so, no relation with Bonnie's account)
         // (here is the magik)
-        await theContract.emergencyTransfer(bonniesAccount.address, typedData.message, v, r, s, {from: relayersAccount.address});
+        await theContract.emergencyTransfer(bonniesAccount.address, message, v, r, s, {from: relayersAccount.address});
         
         const b1 = new BN(oldBonniesBackupAddressBalance);
         const b2 = new BN(bonniesBalance);
@@ -159,6 +163,84 @@ contract("theContract", (accounts) => {
 
         // Assert that Bonnie's old address now has an empty balance
         assert.equal(await theContract.balanceOf(bonniesAccount.address), 0n);
+    });
+
+    it("Bonnie should not be albe to invoke second time emergency transfer", async function () {
+        const { owner, bonniesAccount, bonniesAccountPrvKey, bonniesBackupAccount, relayersAccount, theContract } = await loadFixture(init);
+
+        // ---------- Set up ---------------------------------------
+        const bonniesBalance = 12n;
+        // Bonnie gets her tokens
+        await theContract.transfer(bonniesAccount.address, bonniesBalance);
+        assert.equal(await theContract.balanceOf(bonniesAccount.address), bonniesBalance);
+
+        // Bonnie is precaucious and registers a backup address
+        await theContract.registerBackup(bonniesBackupAccount.address, {from: bonniesAccount.address});
+        assert.equal(await theContract.backupAddress({from: bonniesAccount.address}), bonniesBackupAccount.address);
+
+        // Bonnie gets hacked and now her account is always depleted
+        await emptyAccount(bonniesAccount, owner);
+        assert.equal(await bonniesAccount.getBalance(), 0n);
+    
+        let oldBonniesBackupAddressBalance = await theContract.balanceOf(bonniesBackupAccount.address);
+        
+        let {v, r, s, message} = await generateEIP712SignatureForEmergencyTransfer(bonniesAccountPrvKey, theContract);
+        
+        // Perform the emergency transfer using relayersAccount (so, no relation with Bonnie's account)
+        // (here is the magik)
+        await theContract.emergencyTransfer(bonniesAccount.address, message, v, r, s, {from: relayersAccount.address});
+        
+        const b1 = new BN(oldBonniesBackupAddressBalance);
+        const b2 = new BN(bonniesBalance);
+        // Assert that Bonnie's backup address now has the old balance
+        assert.equal(await theContract.balanceOf(bonniesBackupAccount.address).value, b1.add(b2).value);
+
+        // Assert that Bonnie's old address now has an empty balance
+        assert.equal(await theContract.balanceOf(bonniesAccount.address), 0n);
+
+        try {
+            await theContract.emergencyTransfer(bonniesAccount.address, message, v, r, s, {from: relayersAccount.address});
+            assert.fail('Expected the function to throw an error, but it did not');
+        } catch (error) {
+            assert.match(
+                error.message,
+                /Blacklisted address/,
+                'Error message does not match the expected value'
+              );
+        }
+    });
+
+    it("Transfer to a blacklisted address should forward the tokens to its backup address", async function () {
+        const { owner, bonniesAccount, bonniesAccountPrvKey, bonniesBackupAccount, relayersAccount, theContract } = await loadFixture(init);
+
+        // ---------- Set up ---------------------------------------
+        const bonniesBalance = 12n;
+        // Bonnie gets her tokens
+        await theContract.transfer(bonniesAccount.address, bonniesBalance);
+        assert.equal(await theContract.balanceOf(bonniesAccount.address), bonniesBalance);
+
+        // Bonnie is precaucious and registers a backup address
+        await theContract.registerBackup(bonniesBackupAccount.address, {from: bonniesAccount.address});
+        assert.equal(await theContract.backupAddress({from: bonniesAccount.address}), bonniesBackupAccount.address);
+
+        // Bonnie gets hacked and now her account is always depleted
+        await emptyAccount(bonniesAccount, owner);
+        assert.equal(await bonniesAccount.getBalance(), 0n);
+        
+        let {v, r, s, message} = await generateEIP712SignatureForEmergencyTransfer(bonniesAccountPrvKey, theContract);
+
+        // Perform the emergency transfer using relayersAccount (so, no relation with Bonnie's account)
+        // (here is the magik)
+        await theContract.emergencyTransfer(bonniesAccount.address, message, v, r, s, {from: relayersAccount.address});
+        
+        let currentBonniesBackupAddrressBalance = await theContract.balanceOf(bonniesBackupAccount.address);
+
+        const b1 = new BN(currentBonniesBackupAddrressBalance);
+        const b2 = new BN(2);
+
+        await theContract.transfer(bonniesAccount.address, b2);
+
+        assert.equal(await theContract.balanceOf(bonniesBackupAccount.address).value, b1.add(b2).value);
     });
 
 
