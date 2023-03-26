@@ -5,6 +5,10 @@
   "main": "index.js",
   "scripts": {
     "start:local": "npx hardhat node",
+    "deploy:goerli": "npx hardhat run scripts/deploy.js --network goerli",
+    "sendTokensToBonnie:goerli": "npx hardhat run scripts/sendTokens.js",
+    "registerBkpAddressForBonnie:goerli": "npx hardhat run scripts/registerBkpAddress.js",
+    "emergencyTransfer:goerli": "npx hardhat run scripts/emergencyTransfer.js",
     "compile": "npx hardhat compile",
     "test": "npx hardhat test"
   },

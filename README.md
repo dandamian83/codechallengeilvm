@@ -61,6 +61,7 @@ Adding OpenZeppelin contracts as dependencies
 `yarn test`
 
 ## How to deploy
-
+Deployed on Goerli at address 0x40fB42247A0E532eb20A50f9E26F14a58C804cc2.
 
 ## How to use
+

@@ -2,6 +2,7 @@ const BonnieSituation = artifacts.require("BonnieSituation");
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const { assert, ethers } = require("hardhat");
 const { BN } = require("bn.js");
+const {generateEIP712SignatureForEmergencyTransfer, emptyAccount} = require('../utils');
 
 const TOTAL_SUPPLY = 1000n * 10n ** 18n;
 
@@ -10,7 +11,6 @@ contract("theContract", (accounts) => {
     // We use loadFixture to run this setup once, snapshot that state,
     // and reset Hardhat Network to that snapshot in every test.
     async function init() {
-        
         // Contracts are deployed using the first signer/account by default
         const [owner, bonniesAccount, bonniesBackupAccount, relayersAccount] = await ethers.getSigners();
         
@@ -20,66 +20,6 @@ contract("theContract", (accounts) => {
         const theContract = await BonnieSituation.new("Bonnie Situation", "BST", 18, 1000);
 
         return { owner, bonniesAccount, bonniesAccountPrvKey, bonniesBackupAccount, relayersAccount, theContract };
-    }
-
-    async function emptyAccount(account, to) {
-        let initialSenderBalance = await account.getBalance();
-
-        // Calculate the gas limit and gas price for the transaction
-        const gasPrice = await ethers.provider.getGasPrice();
-        const gasLimit = ethers.BigNumber.from("21000");
-
-        // Calculate the total cost of the transaction
-        const totalCost = gasPrice.mul(gasLimit);
-
-        // Final value to be sent
-        const value = initialSenderBalance.sub(totalCost);
-        // Transfer all funds from sender to receiver
-        const tx = await account.sendTransaction({
-            to: to.address,
-            value,
-            gasLimit,
-            gasPrice,
-        });
-    }
-
-    async function generateEIP712SignatureForEmergencyTransfer(bonniesAccountPrvKey, theContract) {
-        // Typed data for EIP712 signature generation according to https://eips.ethereum.org/EIPS/eip-712
-        const typedData = {
-            types: {
-                // No need to define it when used with ethers._signTypedData (its implicit)
-                // EIP712Domain: [
-                //     { name: "name", type: "string" },
-                //     { name: "version", type: "string" },
-                //     { name: "chainId", type: "uint256" },
-                //     { name: "verifyingContract", type: "address" },
-                // ],
-                EmergencyTransfer: [
-                    {name: "operationCode", type: "uint8"}
-                ]
-            },
-            primaryType: "EmergencyTransfer",
-            domain: {
-                name: "Bonnie Situation",
-                version: "1",
-                chainId: hre.network.config.chainId,
-                verifyingContract: theContract.address,
-            },
-            message: {
-                operationCode: 1
-            }
-        }
-
-
-        const wallet = new ethers.Wallet(bonniesAccountPrvKey);
-        const signature = await wallet._signTypedData(typedData.domain, typedData.types, typedData.message);
-
-        const signatureBytes = ethers.utils.arrayify(signature);
-        const r = ethers.utils.hexlify(signatureBytes.slice(0, 32));
-        const s = ethers.utils.hexlify(signatureBytes.slice(32, 64));
-        const v = ethers.utils.hexlify(signatureBytes.slice(64, 65));
-
-        return {v, r, s, message: typedData.message}
     }
 
     it("Contract should have a total of 1000 BST minted tokens", async function () {
