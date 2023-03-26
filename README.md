@@ -77,6 +77,8 @@ First, you would need at least three accounts: Deployer (Owner of the Smart Cont
     BONNIES_ADDRESS: <Bonnies-account-address>,
     BONNIES_BKP_ADDRESS: <Bonnies-backup-address>,
 
+You could also use the **.env** file that was provided to you via email by pasting it in the root of the project.
+
 Deploy the smart contract on Goerli network
 
 `yarn deploy:goerli`
